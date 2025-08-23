@@ -10,6 +10,12 @@
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
 
   <style>
+
+     .roblox-logo {
+            /* This sets the image width and height to be equal to the current font size */
+            width: 1em;
+            height: 1em;
+        }
     :root{
       --bg:#071025; --fg:#e6eef8; --card:#0f1724; --muted:#90a4b7; --primary:#2563eb; --accent:#60a5fa; --ring:rgba(37,99,235,.35)
     }
@@ -60,7 +66,7 @@
         <input id="name" class="input" placeholder="Your name (e.g., zezo)" />
         <label style="display:inline-flex;align-items:center;gap:8px;">
           <input id="verified" type="checkbox" />
-          <span class="small">Verified (adds ✅)</span>
+          <span class="small">Verified (adds <img src="roblox.png" alt="A Roblox logo" class="roblox-logo">)</span>
         </label>
       </div>
 
