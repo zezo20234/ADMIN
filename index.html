@@ -2,40 +2,58 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>Sender — 5 MP3s + Themes + mp3Src metadata</title>
+  <title>Sender — 5 MP3s + Themes + Discord + Firebase</title>
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <!-- Firebase compat -->
+
+  <!-- Firebase (compat build so v8-style API works) -->
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
 
   <style>
-    /* (kept compact — same styles as before) */
-    :root{--bg:#071025;--fg:#e6eef8;--card:#0f1724;--muted:#90a4b7;--primary:#2563eb}
-    .theme-red{--primary:#ef4444}.theme-green{--primary:#10b981}.theme-pink{--primary:#db2777}.theme-black{--primary:#111827}.theme-disco{animation:disco-hue 6s linear infinite}
-    @keyframes disco-hue{0%{filter:hue-rotate(0deg)}100%{filter:hue-rotate(360deg)}}
+    :root{
+      --bg:#071025; --fg:#e6eef8; --card:#0f1724; --muted:#90a4b7; --primary:#2563eb; --accent:#60a5fa; --ring:rgba(37,99,235,.35)
+    }
+    .theme-red  { --primary:#ef4444; --accent:#fca5a5; --ring:rgba(239,68,68,.35); }
+    .theme-green{ --primary:#10b981; --accent:#6ee7b7; --ring:rgba(16,185,129,.35); }
+    .theme-pink { --primary:#db2777; --accent:#f472b6; --ring:rgba(219,39,119,.35); }
+    .theme-black{ --primary:#111827; --accent:#6b7280; --ring:rgba(17,24,39,.35); --bg:#000; --card:#070707; --fg:#f3f4f6; }
+    .theme-disco { animation: disco-hue 6s linear infinite; }
+    @keyframes disco-hue { 0%{filter:hue-rotate(0deg)} 100%{filter:hue-rotate(360deg)} }
+
     html,body{height:100%;margin:0;background:linear-gradient(180deg,var(--bg),#000);color:var(--fg);font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial}
     .wrap{min-height:100%;display:grid;place-items:center;padding:20px}
     .card{width:100%;max-width:980px;background:linear-gradient(180deg,var(--card),#061025);border-radius:14px;padding:18px;border:1px solid rgba(255,255,255,.04);box-shadow:0 8px 28px rgba(0,0,0,.45)}
-    .themes{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}.theme-btn{padding:8px 12px;border-radius:999px;border:1px solid rgba(255,255,255,.06);background:transparent;color:var(--fg);cursor:pointer}
-    .input,textarea{width:100%;padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,.06);background:rgba(255,255,255,.02);color:var(--fg);outline:none}
-    textarea{min-height:100px;resize:vertical}.player{border-radius:12px;padding:10px;background:rgba(255,255,255,.01);border:1px dashed rgba(255,255,255,.03)}
-    .btn{padding:10px 14px;border-radius:10px;border:0;cursor:pointer;font-weight:600}.btn-primary{background:var(--primary);color:white}.btn-ghost{background:rgba(255,255,255,.03)}
-    .small{font-size:13px;color:var(--muted)}.status{margin-top:8px;font-size:13px;min-height:18px}
+    h1{margin:0 0 8px 0}
+    .muted{color:var(--muted);font-size:13px;margin-bottom:12px}
+    .themes{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+    .theme-btn{padding:8px 12px;border-radius:999px;border:1px solid rgba(255,255,255,.06);background:transparent;color:var(--fg);cursor:pointer}
+    .grid{display:grid;grid-template-columns:1fr;gap:14px}
+    @media(min-width:900px){.grid{grid-template-columns:1fr 1fr}}
+    .input, textarea, .file-input { width:100%; padding:10px; border-radius:10px; border:1px solid rgba(255,255,255,.06); background:rgba(255,255,255,.02); color:var(--fg); outline:none }
+    textarea { min-height:100px; resize:vertical }
+    .row-inline{display:flex;gap:8px;flex-wrap:wrap}
+    .btn{padding:10px 14px;border-radius:10px;border:0;cursor:pointer;font-weight:600}
+    .btn-primary{background:var(--primary);color:white}
+    .btn-ghost{background:rgba(255,255,255,.03);color:var(--fg);border:1px solid rgba(255,255,255,.05)}
+    .player{border-radius:12px;padding:10px;background:rgba(255,255,255,.01);border:1px dashed rgba(255,255,255,.03)}
+    .small{font-size:13px;color:var(--muted)}
+    .status{margin-top:8px;font-size:13px;min-height:18px}
+    .discord-area{margin-top:14px;border-top:1px solid rgba(255,255,255,.03);padding-top:12px}
   </style>
 </head>
 <body>
   <div class="wrap">
     <div id="root" class="card">
-      <h1>Sender — 5 MP3s (now sends mp3Src for public URLs)</h1>
-      <div class="small">When you Play a slot we send message `yoooooooooooooo`. If the audio source is a public HTTP(S) URL, we also attach <code>mp3Src</code> so receivers can play & disco.</div>
+      <h1>Message Sender (5 MP3 slots)</h1>
+      <div class="muted">Play any MP3 slot — when you tap Play the site will send a Firebase message `yoooooooooooooo`. If the audio source is a public HTTPS URL, the message will include <code>mp3Src</code> so receivers can play & disco.</div>
 
-      <div class="themes">
+      <div class="themes" aria-hidden="false">
         <button class="theme-btn" data-theme="none">Default</button>
         <button class="theme-btn" data-theme="theme-red">Red</button>
         <button class="theme-btn" data-theme="theme-green">Green</button>
         <button class="theme-btn" data-theme="theme-pink">Pink</button>
         <button class="theme-btn" data-theme="theme-black">Black</button>
-        <button class="theme-btn" data-theme="theme-disco">Disco</button>
+        <button class="theme-btn" data-theme="theme-disco">DISCO ✨</button>
       </div>
 
       <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:10px;">
@@ -46,43 +64,60 @@
         </label>
       </div>
 
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+      <div class="grid">
         <div>
-          <h3>Message Controls</h3>
-          <textarea id="messageManual" class="input" placeholder="Manual message"></textarea>
-          <div style="display:flex;gap:8px;margin-top:8px;">
-            <button id="sendBtn" class="btn btn-primary">Send Manual</button>
-            <button id="sendYooBtn" class="btn btn-ghost">Send yoooooooooooooo</button>
+          <h3 style="margin:0 0 8px 0">Message Controls</h3>
+          <div class="form-group">
+            <textarea id="messageManual" class="input" placeholder="Manual message (optional)"></textarea>
           </div>
-          <div id="status" class="status small"></div>
+          <div class="row-inline">
+            <button id="sendBtn" class="btn btn-primary">Send Manual Message</button>
+            <button id="sendYooBtn" class="btn btn-ghost">Send yoooooooooooooo (no audio)</button>
+          </div>
+          <div id="status" class="status"></div>
+
+          <!-- Discord webhook UI -->
+          <div class="discord-area">
+            <h4 style="margin:8px 0 6px 0">Discord Webhook</h4>
+            <div style="display:flex;gap:8px;">
+              <input id="discordWebhook" class="input" value="https://discord.com/api/webhooks/1408848046095208610/kxoR-Q5sLX2NlZ2end9xGO4mfQ0ZyYIpKEUhagIemC4hJCjlr4CAbJdAhkJVUDBO2gxe" />
+              <button id="discordBtn" class="btn btn-primary">Send "zezo is typing 😈"</button>
+            </div>
+            <div class="small" style="margin-top:6px;">Browser may block direct webhook calls (CORS). If CORS blocks it, see the server proxy approach (small server required).</div>
+          </div>
         </div>
 
         <div>
-          <h3>MP3 Slots (5)</h3>
+          <h3 style="margin:0 0 8px 0">MP3 Slots (5)</h3>
+          <div class="muted small" style="margin-bottom:8px">Each slot: paste a public MP3 URL or choose a local MP3. Tap <strong>Play</strong> to start audio. Playing will also send the `yoooooooooooooo` message. <em>Note:</em> local files (blob:) will NOT be playable on remote receivers — use public HTTPS URLs for sharing.</div>
+
           <div id="slots"></div>
         </div>
       </div>
     </div>
   </div>
 
+  <!-- template for a slot -->
   <template id="slot-tpl">
     <div class="player" style="margin-bottom:10px;">
       <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;">
         <input class="input mp3-url" placeholder="MP3 URL (https://... .mp3)" />
-        <input type="file" accept="audio/*" class="mp3-file" />
+        <input type="file" accept="audio/*" class="file-input mp3-file" />
       </div>
+
       <div style="display:flex;gap:8px;align-items:center;">
         <button class="btn btn-primary play-btn">Play ▶</button>
         <button class="btn btn-ghost load-btn">Load</button>
         <button class="btn btn-ghost stop-btn">Stop ⏹</button>
         <span class="small source-name" style="margin-left:8px;color:var(--muted)"></span>
       </div>
-      <audio class="audio-el" playsinline controls style="width:100%;margin-top:8px;"></audio>
+
+      <audio class="audio-el" playsinline controls style="width:100%;margin-top:8px;" crossorigin="anonymous"></audio>
     </div>
   </template>
 
   <script>
-    // Firebase config (your config)
+    /* ============ Firebase config (your config) ============ */
     const firebaseConfig = {
       apiKey: "AIzaSyAjeXycCBhYoAU-0iiC4LbSTylKrrThN8Y",
       authDomain: "sharplabubu.firebaseapp.com",
@@ -96,55 +131,54 @@
     const app = firebase.apps.length ? firebase.app() : firebase.initializeApp(firebaseConfig);
     const db  = firebase.database();
 
+    /* ============ helpers ============ */
     const statusEl = document.getElementById('status');
-    function setStatus(t, ok=false){ statusEl.textContent = t || ''; statusEl.style.color = ok ? '#34d399' : '#f87171'; }
+    function setStatus(text, ok=false) { statusEl.textContent = text || ''; statusEl.style.color = ok ? '#34d399' : '#f87171'; }
 
-    // theme
+    // theme handling
     const root = document.getElementById('root');
-    function applyTheme(cls){ root.classList.remove('theme-red','theme-green','theme-pink','theme-black','theme-disco'); if(cls && cls !== 'none') root.classList.add(cls); localStorage.setItem('sender-theme', cls||'none'); }
-    applyTheme(localStorage.getItem('sender-theme')||'none');
-    document.querySelectorAll('.theme-btn').forEach(b=>b.addEventListener('click', ()=>applyTheme(b.dataset.theme)));
+    function applyTheme(cls) {
+      root.classList.remove('theme-red','theme-green','theme-pink','theme-black','theme-disco');
+      if (cls && cls !== 'none') root.classList.add(cls);
+      localStorage.setItem('sender-theme', cls || 'none');
+    }
+    applyTheme(localStorage.getItem('sender-theme') || 'none');
+    document.querySelectorAll('.theme-btn').forEach(b => b.addEventListener('click', () => applyTheme(b.dataset.theme)));
 
     // create 5 slots
     const slotsContainer = document.getElementById('slots');
     const tpl = document.getElementById('slot-tpl');
-    for(let i=0;i<5;i++){ slotsContainer.appendChild(tpl.content.cloneNode(true)); }
+    for (let i = 0; i < 5; i++) slotsContainer.appendChild(tpl.content.cloneNode(true));
 
-    // helper to send message and (optionally) mp3Src
-    function sendMessage(name, text, verified=false, mp3Src=null){
-      try{
-        // Only send mp3Src if it's an https/http url (not blob:, data:, or empty)
-        const payload = {
-          name: String(name||'').trim() || 'anonymous',
-          message: String(text||''),
-          verified: !!verified,
-          timestamp: firebase.database.ServerValue.TIMESTAMP
-        };
-        if(mp3Src && /^https?:\/\//i.test(mp3Src)) payload.mp3Src = mp3Src;
-        db.ref('messages').push(payload);
-        setStatus('Sent to Firebase', true);
-      }catch(e){ console.error(e); setStatus('Failed to send (console).'); }
+    // send helper (attach mp3Src only if public https)
+    function sendMessageToFirebase(name, message, verified=false, mp3Src=null) {
+      const payload = {
+        name: String(name || '').trim() || 'anonymous',
+        message: String(message || ''),
+        verified: !!verified,
+        timestamp: firebase.database.ServerValue.TIMESTAMP
+      };
+      if (mp3Src && /^https?:\/\//i.test(mp3Src)) payload.mp3Src = mp3Src;
+      db.ref('messages').push(payload);
+      setStatus('Sent message to Firebase', true);
     }
 
-    // manual buttons
-    document.getElementById('sendBtn').addEventListener('click', ()=>{
-      const name = document.getElementById('name').value.trim();
+    // manual send buttons
+    document.getElementById('sendBtn').addEventListener('click', () => {
+      const name = document.getElementById('name').value.trim() || 'anonymous';
       const text = document.getElementById('messageManual').value.trim();
-      const verified = document.getElementById('verified') && document.getElementById('verified').checked;
-      if(!text){ setStatus('Type a message first'); return; }
-      sendMessage(name, text, verified, null);
+      const verified = document.getElementById('verified').checked;
+      if (!text) { setStatus('Type a message to send manually'); return; }
+      sendMessageToFirebase(name, text, verified, null);
     });
-    document.getElementById('sendYooBtn').addEventListener('click', ()=>{
-      const name = document.getElementById('name').value.trim();
-      const verified = document.getElementById('verified') && document.getElementById('verified').checked;
-      sendMessage(name, 'yoooooooooooooo', verified, null);
+    document.getElementById('sendYooBtn').addEventListener('click', () => {
+      const name = document.getElementById('name').value.trim() || 'anonymous';
+      const verified = document.getElementById('verified').checked;
+      sendMessageToFirebase(name, 'yoooooooooooooo', verified, null);
     });
 
-    // wire slots
-    const players = Array.from(document.querySelectorAll('.player'));
-    // but template nodes were appended after initial selection — reselect
-    const createdPlayers = Array.from(document.querySelectorAll('.player'));
-    createdPlayers.forEach(player => {
+    // hook up each player slot
+    Array.from(document.querySelectorAll('.player')).forEach(player => {
       const urlIn = player.querySelector('.mp3-url');
       const fileIn = player.querySelector('.mp3-file');
       const playBtn = player.querySelector('.play-btn');
@@ -153,68 +187,103 @@
       const audioEl = player.querySelector('.audio-el');
       const srcLabel = player.querySelector('.source-name');
 
-      loadBtn.addEventListener('click', ()=>{
+      // Load URL
+      loadBtn.addEventListener('click', () => {
         const url = urlIn.value.trim();
-        if(!url){ setStatus('Enter MP3 URL first'); return; }
+        if (!url) { setStatus('Enter an MP3 URL first'); return; }
         audioEl.src = url;
         audioEl.load();
-        srcLabel.textContent = 'URL loaded';
+        srcLabel.textContent = 'Loaded URL';
         setStatus('URL loaded. Tap Play ▶', true);
       });
 
-      fileIn.addEventListener('change', ()=>{
+      // Load local file
+      fileIn.addEventListener('change', () => {
         const f = fileIn.files && fileIn.files[0];
-        if(!f) return;
-        const blob = URL.createObjectURL(f);
-        audioEl.src = blob;
+        if (!f) return;
+        const blobUrl = URL.createObjectURL(f);
+        audioEl.src = blobUrl;
         audioEl.load();
-        srcLabel.textContent = f.name || 'local file';
-        setStatus('Local file loaded. Note: local files do NOT play on remote receivers.', false);
+        srcLabel.textContent = f.name || 'Local file';
+        setStatus('Local file loaded. Note: local files will NOT be playable by remote receivers.', false);
       });
 
-      // play — this is the user gesture. we will try to include mp3Src if it's http(s)
-      playBtn.addEventListener('click', async (ev)=>{
+      // Play — user gesture: plays audio and sends yoo message. If source is https, send mp3Src.
+      playBtn.addEventListener('click', async (ev) => {
         ev.stopPropagation();
         const name = document.getElementById('name').value.trim() || 'anonymous';
-        const verified = document.getElementById('verified') && document.getElementById('verified').checked;
+        const verified = document.getElementById('verified').checked;
 
-        // ensure a source
-        if(!audioEl.src){
-          if(urlIn.value.trim()){ audioEl.src = urlIn.value.trim(); audioEl.load(); srcLabel.textContent='URL loaded'; }
-          else if(fileIn.files && fileIn.files[0]){ audioEl.src = URL.createObjectURL(fileIn.files[0]); audioEl.load(); srcLabel.textContent='local file'; }
-          else { setStatus('No source — paste URL or choose file'); return; }
+        // ensure source
+        if (!audioEl.src) {
+          if (urlIn.value.trim()) { audioEl.src = urlIn.value.trim(); audioEl.load(); srcLabel.textContent = 'Loaded URL'; }
+          else if (fileIn.files && fileIn.files[0]) { audioEl.src = URL.createObjectURL(fileIn.files[0]); audioEl.load(); srcLabel.textContent = 'Local file'; }
+          else { setStatus('No source — paste URL or choose file first'); return; }
         }
 
-        try{
-          await audioEl.play(); // user gesture
-          setStatus('Playing — sending yoooooooooooooo', true);
-          // send message with mp3Src only if it's an http(s) URL (not blob:)
+        try {
+          await audioEl.play(); // user gesture -> allowed on iOS
+          setStatus('Playing audio — sending yoooooooooooooo', true);
           const curSrc = audioEl.currentSrc || audioEl.src || '';
           const mp3Src = /^https?:\/\//i.test(curSrc) ? curSrc : null;
-          sendMessage(name, 'yoooooooooooooo', verified, mp3Src);
-        }catch(err){
+          sendMessageToFirebase(name, 'yoooooooooooooo', verified, mp3Src);
+        } catch (err) {
           console.error('play failed', err);
-          setStatus('Play failed — maybe format or gesture issue', false);
+          setStatus('Play failed (format or permission). Try tapping Play again.', false);
         }
       });
 
-      stopBtn.addEventListener('click', ()=>{ if(!audioEl.paused) audioEl.pause(); audioEl.currentTime=0; setStatus('Stopped', true); });
+      // Stop
+      stopBtn.addEventListener('click', () => {
+        try { if (!audioEl.paused) audioEl.pause(); audioEl.currentTime = 0; } catch(e){}
+        setStatus('Stopped', true);
+      });
 
-      // also if user uses native controls to play, send once (avoid duplicates with small throttle)
-      audioEl.addEventListener('play', ()=>{
+      // If the user uses native controls to play, send once (throttle a bit)
+      audioEl.addEventListener('play', () => {
         const last = player._lastAutoSend || 0;
         const now = Date.now();
-        if(now - last > 1500){
+        if (now - last > 1500) {
           const name = document.getElementById('name').value.trim() || 'anonymous';
-          const verified = document.getElementById('verified') && document.getElementById('verified').checked;
+          const verified = document.getElementById('verified').checked;
           const curSrc = audioEl.currentSrc || audioEl.src || '';
           const mp3Src = /^https?:\/\//i.test(curSrc) ? curSrc : null;
-          sendMessage(name, 'yoooooooooooooo', verified, mp3Src);
+          sendMessageToFirebase(name, 'yoooooooooooooo', verified, mp3Src);
           player._lastAutoSend = now;
           setStatus('Playing (control) — sent yoooooooooooooo', true);
         }
       });
     });
+
+    /* ============ Discord webhook button (direct fetch) ============ */
+    document.getElementById('discordBtn').addEventListener('click', async () => {
+      const webhook = document.getElementById('discordWebhook').value.trim();
+      if (!webhook) { setStatus('Paste the Discord webhook URL first'); return; }
+
+      const payload = {
+        username: "zezo",
+        content: "zezo is typing 😈"
+      };
+
+      try {
+        const res = await fetch(webhook, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        if (res.ok) setStatus('Discord webhook sent (direct).', true);
+        else {
+          const txt = await res.text().catch(()=>res.statusText);
+          console.warn('discord returned', res.status, txt);
+          setStatus('Discord returned status ' + res.status + '. See console.', false);
+        }
+      } catch (err) {
+        console.error('discord fetch error (likely CORS):', err);
+        setStatus('Direct webhook blocked by browser (CORS). Use a server proxy to forward the webhook.', false);
+      }
+    });
+
+    // Helpful note: If browser blocks webhook due to CORS, deploy a tiny server (Firebase Function / Express) that forwards requests.
 
   </script>
 </body>
