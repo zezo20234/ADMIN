@@ -1,1 +1,89 @@
-hello
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin Message Sender</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f0f0f0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .box {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.2);
+      width: 320px;
+    }
+    input, textarea, button {
+      width: 100%;
+      margin-top: 10px;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+    button {
+      background: #5865F2;
+      color: white;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #4752C4;
+    }
+    label {
+      font-weight: bold;
+      display: block;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <h2>Send Message</h2>
+
+    <label for="username">Sender:</label>
+    <input type="text" id="username" placeholder="e.g. Zezo">
+
+    <label for="message">Message:</label>
+    <textarea id="message" rows="4" placeholder="Write your message..."></textarea>
+
+    <button onclick="sendMessage(false)">Send</button>
+    <button onclick="sendMessage(true)">Send with ✅ Verified</button>
+  </div>
+
+  <script>
+    async function sendMessage(verified) {
+      const username = document.getElementById("username").value.trim();
+      const message = document.getElementById("message").value.trim();
+
+      if (!username || !message) {
+        alert("Please enter both a sender and a message.");
+        return;
+      }
+
+      const displayName = verified ? `${username} [✔ Verified]` : username;
+      const content = `${displayName}: ${message}`;
+
+      const webhookURL = "https://discord.com/api/webhooks/1408848046095208610/kxoR-Q5sLX2NlZ2end9xGO4mfQ0ZyYIpKEUhagIemC4hJCjlr4CAbJdAhkJVUDBO2gxe";
+
+      try {
+        await fetch(webhookURL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ content: content })
+        });
+        alert("Message sent!");
+      } catch (error) {
+        alert("Failed to send message. Check your webhook URL.");
+        console.error(error);
+      }
+    }
+  </script>
+</body>
+</html>
