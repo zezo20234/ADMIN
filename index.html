@@ -5,10 +5,12 @@
   <title>Message Sender</title>
   <style>
     body { font-family: Arial, sans-serif; padding: 20px; }
-    form { display: grid; gap: 10px; max-width: 300px; }
+    form { display: grid; gap: 10px; max-width: 300px; margin-bottom:20px; }
     label { font-size: 14px; }
     button { padding: 8px; border: none; border-radius: 6px; background: #007bff; color: white; cursor: pointer; }
-    button:hover { background: #0056b3; }
+    button:hover { opacity: 0.8; }
+    .theme-buttons { display:flex; gap:8px; flex-wrap:wrap; }
+    .theme-buttons button { flex:1; }
   </style>
 </head>
 <body>
@@ -30,15 +32,25 @@
       Duration (5–30 seconds):
       <input type="number" id="duration" min="5" max="30" value="10" required>
     </label>
-    <button type="submit">Send</button>
+    <button type="submit">Send Message</button>
   </form>
+
+  <h3>Change Theme</h3>
+  <div class="theme-buttons">
+    <button onclick="sendTheme('pink')">Pink</button>
+    <button onclick="sendTheme('yellow')">Yellow</button>
+    <button onclick="sendTheme('red')">Red</button>
+    <button onclick="sendTheme('blue')">Blue</button>
+    <button onclick="sendTheme('disco')">Disco</button>
+    <button onclick="sendTheme('off')">Off</button>
+  </div>
 
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
 
   <script>
-    // Your Firebase config
+    // Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyAjeXycCBhYoAU-0iiC4LbSTylKrrThN8Y",
       authDomain: "sharplabubu.firebaseapp.com",
@@ -50,11 +62,10 @@
       measurementId: "G-4M25R3BF08"
     };
 
-    // Init Firebase
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // Handle form submit
+    // Send message
     document.getElementById("msgForm").addEventListener("submit", (e) => {
       e.preventDefault();
 
@@ -66,7 +77,7 @@
       if (!name || !msg) return;
 
       const messageData = {
-        id: Date.now() + Math.random(), // unique
+        id: Date.now() + Math.random(),
         name: roblox ? `${name}{roblox.png}` : name,
         text: msg,
         duration: duration * 1000,
@@ -78,6 +89,11 @@
       alert("Message sent!");
       e.target.reset();
     });
+
+    // Send theme command
+    function sendTheme(theme) {
+      db.ref("theme").set({ mode: theme, timestamp: Date.now() });
+    }
   </script>
 </body>
 </html>
