@@ -47,11 +47,9 @@
 
   <!-- Firebase SDK -->
   <script type="module">
-    // Import Firebase
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
     import { getDatabase, push, ref } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
 
-    // Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyAjeXycCBhYoAU-0iiC4LbSTylKrrThN8Y",
       authDomain: "sharplabubu.firebaseapp.com",
@@ -63,17 +61,19 @@
       measurementId: "G-4M25R3BF08"
     };
 
-    // Init Firebase
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
-    // Form
     const form = document.getElementById("messageForm");
+    const senderInput = document.getElementById("sender");
+
+    // Load saved sender from localStorage
+    senderInput.value = localStorage.getItem("savedSender") || "";
 
     form.addEventListener("submit", (e) => {
       e.preventDefault();
 
-      const sender = document.getElementById("sender").value;
+      const sender = senderInput.value;
       const message = document.getElementById("message").value;
       const robloxCheck = document.getElementById("robloxCheck").checked;
 
@@ -84,11 +84,14 @@
         timestamp: Date.now()
       };
 
-      // Save to Firebase
+      // Save sender in localStorage so it stays
+      localStorage.setItem("savedSender", sender);
+
+      // Send to Firebase
       push(ref(db, "messages"), msgData);
 
-      alert("Message sent!");
       form.reset();
+      senderInput.value = sender; // keep sender filled in
     });
   </script>
 </body>
