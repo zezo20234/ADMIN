@@ -7,10 +7,10 @@
     body { font-family: Arial, sans-serif; padding: 20px; }
     form { display: grid; gap: 10px; max-width: 300px; margin-bottom:20px; }
     label { font-size: 14px; }
-    button { padding: 8px; border: none; border-radius: 6px; background: #007bff; color: white; cursor: pointer; }
+    button { padding: 6px 10px; border: none; border-radius: 6px; background: #007bff; color: white; cursor: pointer; }
     button:hover { opacity: 0.8; }
-    .theme-buttons { display:flex; gap:8px; flex-wrap:wrap; }
-    .theme-buttons button { flex:1; }
+    .theme-buttons, .music-controls { display:flex; gap:6px; flex-wrap:wrap; margin:8px 0; }
+    .music-slot { margin-bottom:12px; }
   </style>
 </head>
 <body>
@@ -45,12 +45,14 @@
     <button onclick="sendTheme('off')">Off</button>
   </div>
 
+  <h3>Music Controls</h3>
+  <div id="musicSlots"></div>
+
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
 
   <script>
-    // Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyAjeXycCBhYoAU-0iiC4LbSTylKrrThN8Y",
       authDomain: "sharplabubu.firebaseapp.com",
@@ -65,7 +67,7 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // Send message
+    // send message
     document.getElementById("msgForm").addEventListener("submit", (e) => {
       e.preventDefault();
 
@@ -85,14 +87,34 @@
       };
 
       db.ref("messages").push(messageData);
-
-      alert("Message sent!");
       e.target.reset();
     });
 
-    // Send theme command
+    // theme
     function sendTheme(theme) {
       db.ref("theme").set({ mode: theme, timestamp: Date.now() });
+    }
+
+    // create 5 slots for MP3
+    const musicSlotsDiv = document.getElementById("musicSlots");
+    for (let i=1; i<=5; i++) {
+      const slot = document.createElement("div");
+      slot.className = "music-slot";
+      slot.innerHTML = `
+        <label>MP3 Slot ${i}: <input type="text" id="mp3url${i}" placeholder="Paste MP3 URL"></label>
+        <div class="music-controls">
+          <button onclick="sendMusic('play', ${i})">Play</button>
+          <button onclick="sendMusic('stop', ${i})">Stop</button>
+          <button onclick="sendMusic('loop', ${i})">Loop</button>
+        </div>
+      `;
+      musicSlotsDiv.appendChild(slot);
+    }
+
+    function sendMusic(action, slot) {
+      const url = document.getElementById("mp3url"+slot).value.trim();
+      if (!url) { alert("Please enter an MP3 URL for slot " + slot); return; }
+      db.ref("music").set({ action, url, timestamp: Date.now() });
     }
   </script>
 </body>
