@@ -33,9 +33,28 @@
     <button type="submit">Send</button>
   </form>
 
-  <script>
-    const channel = new BroadcastChannel("messageChannel");
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
 
+  <script>
+    // Your Firebase config
+    const firebaseConfig = {
+      apiKey: "AIzaSyAjeXycCBhYoAU-0iiC4LbSTylKrrThN8Y",
+      authDomain: "sharplabubu.firebaseapp.com",
+      databaseURL: "https://sharplabubu-default-rtdb.firebaseio.com",
+      projectId: "sharplabubu",
+      storageBucket: "sharplabubu.firebasestorage.app",
+      messagingSenderId: "596148393481",
+      appId: "1:596148393481:web:4f822d86c44a13bd810ad8",
+      measurementId: "G-4M25R3BF08"
+    };
+
+    // Init Firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    // Handle form submit
     document.getElementById("msgForm").addEventListener("submit", (e) => {
       e.preventDefault();
 
@@ -47,19 +66,14 @@
       if (!name || !msg) return;
 
       const messageData = {
-        id: Date.now() + Math.random(), // unique id
+        id: Date.now() + Math.random(), // unique
         name: roblox ? `${name}{roblox.png}` : name,
         text: msg,
         duration: duration * 1000,
+        timestamp: Date.now()
       };
 
-      // Send via channel
-      channel.postMessage(messageData);
-
-      // Save in localStorage so receiver can pick up
-      let history = JSON.parse(localStorage.getItem("messages") || "[]");
-      history.push(messageData);
-      localStorage.setItem("messages", JSON.stringify(history));
+      db.ref("messages").push(messageData);
 
       alert("Message sent!");
       e.target.reset();
