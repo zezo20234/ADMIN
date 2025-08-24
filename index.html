@@ -2,68 +2,56 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Sender</title>
+  <title>Message Sender</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    form { display: grid; gap: 10px; max-width: 300px; margin-bottom:20px; }
+    label { font-size: 14px; }
+    button { padding: 6px 10px; border: none; border-radius: 6px; background: #007bff; color: white; cursor: pointer; }
+    button:hover { opacity: 0.8; }
+    .theme-buttons, .music-controls { display:flex; gap:6px; flex-wrap:wrap; margin:8px 0; }
+    .music-slot { margin-bottom:12px; }
+  </style>
+</head>
+<body>
+  <h2>Send a Message</h2>
+  <form id="msgForm">
+    <label>
+      Name:
+      <input type="text" id="name" required>
+    </label>
+    <label>
+      Message:
+      <input type="text" id="message" required>
+    </label>
+    <label>
+      Add Roblox icon?
+      <input type="checkbox" id="robloxCheck">
+    </label>
+    <label>
+      Duration (5–30 seconds):
+      <input type="number" id="duration" min="5" max="30" value="10" required>
+    </label>
+    <button type="submit">Send Message</button>
+  </form>
+
+  <h3>Change Theme</h3>
+  <div class="theme-buttons">
+    <button onclick="sendTheme('pink')">Pink</button>
+    <button onclick="sendTheme('yellow')">Yellow</button>
+    <button onclick="sendTheme('red')">Red</button>
+    <button onclick="sendTheme('blue')">Blue</button>
+    <button onclick="sendTheme('disco')">Disco</button>
+    <button onclick="sendTheme('off')">Off</button>
+  </div>
+
+  <h3>Music Controls</h3>
+  <div id="musicSlots"></div>
+
+  <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-storage-compat.js"></script>
-</head>
-<body style="font-family:Arial, sans-serif; padding:20px;">
-
-  <h2>Send Message</h2>
-  <form id="msgForm">
-    <label>Name:</label>
-    <input type="text" id="name" required><br><br>
-
-    <label>Message:</label><br>
-    <textarea id="message" rows="4" cols="40" required></textarea><br><br>
-
-    <label><input type="checkbox" id="robloxCheck"> Add Roblox Icon</label><br><br>
-
-    <label>Duration (seconds):</label>
-    <input type="number" id="duration" min="5" max="30" value="10"><br><br>
-
-    <button type="submit">Send</button>
-  </form>
-
-  <h2>Background Colors</h2>
-  <button onclick="sendColor('pink')">Pink</button>
-  <button onclick="sendColor('yellow')">Yellow</button>
-  <button onclick="sendColor('red')">Red</button>
-  <button onclick="sendColor('blue')">Blue</button>
-  <button onclick="sendDisco()">Disco</button>
-  <button onclick="sendColor('off')">Off</button>
-
-  <h2>Music Controls</h2>
-  <div>
-    <label>Slot 1: <input type="file" id="file1" accept="audio/mp3"></label>
-    <button onclick="playMusic('file1', false)">Play</button>
-    <button onclick="playMusic('file1', true)">Loop</button>
-    <button onclick="stopMusic()">Stop</button>
-  </div>
-  <div>
-    <label>Slot 2: <input type="file" id="file2" accept="audio/mp3"></label>
-    <button onclick="playMusic('file2', false)">Play</button>
-    <button onclick="playMusic('file2', true)">Loop</button>
-    <button onclick="stopMusic()">Stop</button>
-  </div>
-  <div>
-    <label>Slot 3: <input type="file" id="file3" accept="audio/mp3"></label>
-    <button onclick="playMusic('file3', false)">Play</button>
-    <button onclick="playMusic('file3', true)">Loop</button>
-    <button onclick="stopMusic()">Stop</button>
-  </div>
-  <div>
-    <label>Slot 4: <input type="file" id="file4" accept="audio/mp3"></label>
-    <button onclick="playMusic('file4', false)">Play</button>
-    <button onclick="playMusic('file4', true)">Loop</button>
-    <button onclick="stopMusic()">Stop</button>
-  </div>
-  <div>
-    <label>Slot 5: <input type="file" id="file5" accept="audio/mp3"></label>
-    <button onclick="playMusic('file5', false)">Play</button>
-    <button onclick="playMusic('file5', true)">Loop</button>
-    <button onclick="stopMusic()">Stop</button>
-  </div>
 
   <script>
     const firebaseConfig = {
@@ -71,7 +59,7 @@
       authDomain: "sharplabubu.firebaseapp.com",
       databaseURL: "https://sharplabubu-default-rtdb.firebaseio.com",
       projectId: "sharplabubu",
-      storageBucket: "sharplabubu.appspot.com", // ✅ fixed
+      storageBucket: "sharplabubu.appspot.com",
       messagingSenderId: "596148393481",
       appId: "1:596148393481:web:4f822d86c44a13bd810ad8",
       measurementId: "G-4M25R3BF08"
@@ -81,55 +69,71 @@
     const db = firebase.database();
     const storage = firebase.storage();
 
-    // ---- Send Messages ----
-    document.getElementById("msgForm").addEventListener("submit", function(e){
+    // send message
+    document.getElementById("msgForm").addEventListener("submit", (e) => {
       e.preventDefault();
-      let name = document.getElementById("name").value;
-      const msg = document.getElementById("message").value;
-      const duration = parseInt(document.getElementById("duration").value) * 1000;
-      if(document.getElementById("robloxCheck").checked){
-        name += "{roblox.png}";
-      }
 
-      const id = Date.now().toString();
-      db.ref("messages").push({
-        id: id,
-        name: name,
+      const name = document.getElementById("name").value.trim();
+      const msg = document.getElementById("message").value.trim();
+      const roblox = document.getElementById("robloxCheck").checked;
+      const duration = Math.max(5, Math.min(30, parseInt(document.getElementById("duration").value)));
+
+      if (!name || !msg) return;
+
+      const messageData = {
+        id: Date.now() + Math.random(),
+        name: roblox ? `${name}{roblox.png}` : name,
         text: msg,
-        duration: duration
-      });
-      this.reset();
+        duration: duration * 1000,
+        timestamp: Date.now()
+      };
+
+      db.ref("messages").push(messageData);
+      e.target.reset();
     });
 
-    // ---- Background Colors ----
-    function sendColor(color){
-      db.ref("color").set({mode: color});
-    }
-    function sendDisco(){
-      db.ref("color").set({mode: "disco"});
+    // theme
+    function sendTheme(theme) {
+      db.ref("theme").set({ mode: theme, timestamp: Date.now() });
     }
 
-    // ---- Music ----
-    function playMusic(fileInputId, loop){
-      const fileInput = document.getElementById(fileInputId);
-      if (!fileInput.files.length) {
-        alert("Please select a file first!");
+    // create 5 slots with file upload
+    const musicSlotsDiv = document.getElementById("musicSlots");
+    for (let i=1; i<=5; i++) {
+      const slot = document.createElement("div");
+      slot.className = "music-slot";
+      slot.innerHTML = `
+        <label>MP3 Slot ${i}: <input type="file" id="mp3file${i}" accept="audio/mp3"></label>
+        <div class="music-controls">
+          <button onclick="sendMusic('play', ${i})">Play</button>
+          <button onclick="sendMusic('stop', ${i})">Stop</button>
+          <button onclick="sendMusic('loop', ${i})">Loop</button>
+        </div>
+      `;
+      musicSlotsDiv.appendChild(slot);
+    }
+
+    function sendMusic(action, slot) {
+      const fileInput = document.getElementById("mp3file"+slot);
+      const file = fileInput.files[0];
+
+      if (!file && action !== "stop") {
+        alert("Please select an MP3 file for slot " + slot);
         return;
       }
-      const file = fileInput.files[0];
-      const storageRef = storage.ref("music/" + file.name);
+
+      if (action === "stop") {
+        db.ref("music").set({ action, url: "", timestamp: Date.now() });
+        return;
+      }
+
+      // upload file to storage
+      const storageRef = storage.ref("music/slot" + slot + ".mp3");
       storageRef.put(file).then(() => {
-        storageRef.getDownloadURL().then(url => {
-          db.ref("music").set({
-            url: url,
-            action: loop ? "loop" : "play"
-          });
+        storageRef.getDownloadURL().then((url) => {
+          db.ref("music").set({ action, url, timestamp: Date.now() });
         });
       });
-    }
-
-    function stopMusic(){
-      db.ref("music").set({action:"stop"});
     }
   </script>
 </body>
