@@ -2,97 +2,67 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Message Sender (Firebase)</title>
+  <title>Message Sender</title>
   <style>
-    body{ font-family:Arial, sans-serif; margin:20px; }
-    form{ display:grid; gap:12px; max-width:420px; }
-    label img{ width:20px; height:20px; vertical-align:middle; }
-    input[type="text"]{ padding:8px; font-size:16px; }
-    button{ padding:10px 14px; font-size:16px; cursor:pointer; }
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    form { display: grid; gap: 10px; max-width: 300px; }
+    label { font-size: 14px; }
+    button { padding: 8px; border: none; border-radius: 6px; background: #007bff; color: white; cursor: pointer; }
+    button:hover { background: #0056b3; }
   </style>
 </head>
 <body>
-
   <h2>Send a Message</h2>
-
-  <form id="messageForm">
+  <form id="msgForm">
     <label>
-      Sender:
-      <input type="text" id="sender" required>
+      Name:
+      <input type="text" id="name" required>
     </label>
-
-    <label>
-      <input type="checkbox" id="robloxCheck">
-      <img src="roblox-check.png" alt="Roblox Check"> <!-- replace with your image -->
-      Show my Roblox check photo
-    </label>
-
     <label>
       Message:
-      <input type="text" id="message" required placeholder="Type your message">
+      <input type="text" id="message" required>
     </label>
-
+    <label>
+      Add Roblox icon?
+      <input type="checkbox" id="robloxCheck">
+    </label>
+    <label>
+      Duration (5–30 seconds):
+      <input type="number" id="duration" min="5" max="30" value="10" required>
+    </label>
     <button type="submit">Send</button>
   </form>
 
-  <!-- Firebase Compat SDKs -->
-  <script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-database-compat.js"></script>
-
   <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyAjeXycCBhYoAU-0iiC4LbSTylKrrThN8Y",
-      authDomain: "sharplabubu.firebaseapp.com",
-      databaseURL: "https://sharplabubu-default-rtdb.firebaseio.com",
-      projectId: "sharplabubu",
-      storageBucket: "sharplabubu.firebasestorage.app",
-      messagingSenderId: "596148393481",
-      appId: "1:596148393481:web:4f822d86c44a13bd810ad8",
-      measurementId: "G-4M25R3BF08"
-    };
+    const channel = new BroadcastChannel("messageChannel");
 
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
-
-    const form = document.getElementById('messageForm');
-    const senderInput = document.getElementById('sender');
-    const messageInput = document.getElementById('message');
-    const robloxCheck = document.getElementById('robloxCheck');
-
-    // Keep your sender between sends
-    senderInput.value = localStorage.getItem('savedSender') || '';
-
-    form.addEventListener('submit', (e)=>{
+    document.getElementById("msgForm").addEventListener("submit", (e) => {
       e.preventDefault();
 
-      const sender = senderInput.value.trim();
-      const message = messageInput.value.trim();
-      const roblox = robloxCheck.checked;
+      const name = document.getElementById("name").value.trim();
+      const msg = document.getElementById("message").value.trim();
+      const roblox = document.getElementById("robloxCheck").checked;
+      const duration = Math.max(5, Math.min(30, parseInt(document.getElementById("duration").value)));
 
-      if (!sender || !message) return;
+      if (!name || !msg) return;
 
-      const payload = {
-        sender,
-        message,
-        roblox,
-        timestamp: Date.now()
+      const messageData = {
+        id: Date.now() + Math.random(), // unique id
+        name: roblox ? `${name}{roblox.png}` : name,
+        text: msg,
+        duration: duration * 1000,
       };
 
-      // Save sender for next time
-      localStorage.setItem('savedSender', sender);
+      // Send via channel
+      channel.postMessage(messageData);
 
-      // Push to Firebase
-      db.ref('messages').push(payload)
-        .then(()=>{
-          // Clear only the message + checkbox; keep sender
-          messageInput.value = '';
-          // keep checkbox as-is or reset it — choose one:
-          // robloxCheck.checked = false;
-        })
-        .catch(err=>{
-          console.error('Send failed:', err);
-          alert('Failed to send. See console for details.');
-        });
+      // Save in localStorage so receiver can pick up
+      let history = JSON.parse(localStorage.getItem("messages") || "[]");
+      history.push(messageData);
+      localStorage.setItem("messages", JSON.stringify(history));
+
+      alert("Message sent!");
+      e.target.reset();
     });
   </script>
 </body>
