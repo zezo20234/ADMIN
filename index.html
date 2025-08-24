@@ -51,6 +51,7 @@
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-storage-compat.js"></script>
 
   <script>
     const firebaseConfig = {
@@ -58,7 +59,7 @@
       authDomain: "sharplabubu.firebaseapp.com",
       databaseURL: "https://sharplabubu-default-rtdb.firebaseio.com",
       projectId: "sharplabubu",
-      storageBucket: "sharplabubu.firebasestorage.app",
+      storageBucket: "sharplabubu.appspot.com",
       messagingSenderId: "596148393481",
       appId: "1:596148393481:web:4f822d86c44a13bd810ad8",
       measurementId: "G-4M25R3BF08"
@@ -66,6 +67,7 @@
 
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
+    const storage = firebase.storage();
 
     // send message
     document.getElementById("msgForm").addEventListener("submit", (e) => {
@@ -95,13 +97,13 @@
       db.ref("theme").set({ mode: theme, timestamp: Date.now() });
     }
 
-    // create 5 slots for MP3
+    // create 5 slots with file upload
     const musicSlotsDiv = document.getElementById("musicSlots");
     for (let i=1; i<=5; i++) {
       const slot = document.createElement("div");
       slot.className = "music-slot";
       slot.innerHTML = `
-        <label>MP3 Slot ${i}: <input type="text" id="mp3url${i}" placeholder="Paste MP3 URL"></label>
+        <label>MP3 Slot ${i}: <input type="file" id="mp3file${i}" accept="audio/mp3"></label>
         <div class="music-controls">
           <button onclick="sendMusic('play', ${i})">Play</button>
           <button onclick="sendMusic('stop', ${i})">Stop</button>
@@ -112,9 +114,26 @@
     }
 
     function sendMusic(action, slot) {
-      const url = document.getElementById("mp3url"+slot).value.trim();
-      if (!url) { alert("Please enter an MP3 URL for slot " + slot); return; }
-      db.ref("music").set({ action, url, timestamp: Date.now() });
+      const fileInput = document.getElementById("mp3file"+slot);
+      const file = fileInput.files[0];
+
+      if (!file && action !== "stop") {
+        alert("Please select an MP3 file for slot " + slot);
+        return;
+      }
+
+      if (action === "stop") {
+        db.ref("music").set({ action, url: "", timestamp: Date.now() });
+        return;
+      }
+
+      // upload file to storage
+      const storageRef = storage.ref("music/slot" + slot + ".mp3");
+      storageRef.put(file).then(() => {
+        storageRef.getDownloadURL().then((url) => {
+          db.ref("music").set({ action, url, timestamp: Date.now() });
+        });
+      });
     }
   </script>
 </body>
