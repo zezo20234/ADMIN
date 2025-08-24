@@ -4,52 +4,42 @@
   <meta charset="UTF-8">
   <title>Message Sender (Firebase)</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 20px;
-    }
-
-    form {
-      margin-bottom: 20px;
-    }
-
-    label img {
-      width: 20px;
-      height: 20px;
-      vertical-align: middle;
-    }
+    body{ font-family:Arial, sans-serif; margin:20px; }
+    form{ display:grid; gap:12px; max-width:420px; }
+    label img{ width:20px; height:20px; vertical-align:middle; }
+    input[type="text"]{ padding:8px; font-size:16px; }
+    button{ padding:10px 14px; font-size:16px; cursor:pointer; }
   </style>
 </head>
 <body>
 
   <h2>Send a Message</h2>
+
   <form id="messageForm">
     <label>
       Sender:
       <input type="text" id="sender" required>
     </label>
-    <br><br>
 
     <label>
       <input type="checkbox" id="robloxCheck">
-      <img src="roblox.png" alt="Roblox Check"> <!-- replace with your image -->
+      <img src="roblox-check.png" alt="Roblox Check"> <!-- replace with your image -->
+      Show my Roblox check photo
     </label>
-    <br><br>
 
     <label>
       Message:
-      <input type="text" id="message" required>
+      <input type="text" id="message" required placeholder="Type your message">
     </label>
-    <br><br>
 
     <button type="submit">Send</button>
   </form>
 
-  <!-- Firebase SDK -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-    import { getDatabase, push, ref } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
+  <!-- Firebase Compat SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-database-compat.js"></script>
 
+  <script>
     const firebaseConfig = {
       apiKey: "AIzaSyAjeXycCBhYoAU-0iiC4LbSTylKrrThN8Y",
       authDomain: "sharplabubu.firebaseapp.com",
@@ -61,37 +51,48 @@
       measurementId: "G-4M25R3BF08"
     };
 
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
 
-    const form = document.getElementById("messageForm");
-    const senderInput = document.getElementById("sender");
+    const form = document.getElementById('messageForm');
+    const senderInput = document.getElementById('sender');
+    const messageInput = document.getElementById('message');
+    const robloxCheck = document.getElementById('robloxCheck');
 
-    // Load saved sender from localStorage
-    senderInput.value = localStorage.getItem("savedSender") || "";
+    // Keep your sender between sends
+    senderInput.value = localStorage.getItem('savedSender') || '';
 
-    form.addEventListener("submit", (e) => {
+    form.addEventListener('submit', (e)=>{
       e.preventDefault();
 
-      const sender = senderInput.value;
-      const message = document.getElementById("message").value;
-      const robloxCheck = document.getElementById("robloxCheck").checked;
+      const sender = senderInput.value.trim();
+      const message = messageInput.value.trim();
+      const roblox = robloxCheck.checked;
 
-      const msgData = {
-        sender: sender,
-        message: message,
-        roblox: robloxCheck,
+      if (!sender || !message) return;
+
+      const payload = {
+        sender,
+        message,
+        roblox,
         timestamp: Date.now()
       };
 
-      // Save sender in localStorage so it stays
-      localStorage.setItem("savedSender", sender);
+      // Save sender for next time
+      localStorage.setItem('savedSender', sender);
 
-      // Send to Firebase
-      push(ref(db, "messages"), msgData);
-
-      form.reset();
-      senderInput.value = sender; // keep sender filled in
+      // Push to Firebase
+      db.ref('messages').push(payload)
+        .then(()=>{
+          // Clear only the message + checkbox; keep sender
+          messageInput.value = '';
+          // keep checkbox as-is or reset it — choose one:
+          // robloxCheck.checked = false;
+        })
+        .catch(err=>{
+          console.error('Send failed:', err);
+          alert('Failed to send. See console for details.');
+        });
     });
   </script>
 </body>
