@@ -185,5 +185,62 @@
       this.reset();
     });
   </script>
+  <button id="sendButton" class="w-full bg-indigo-600 text-white font-semibold py-3 px-6 rounded-xl shadow-md hover:bg-indigo-700 transition-colors duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-50">
+            Send Message to Discord
+        </button>
+
+        <!-- Message area to show status -->
+        <p id="statusMessage" class="mt-4 text-sm text-gray-600"></p>
+    </div>
+
+    <script>
+        // Get the button and the status message elements from the HTML
+        const sendButton = document.getElementById('sendButton');
+        const statusMessage = document.getElementById('statusMessage');
+
+        // Define the Discord webhook URL and the message to send
+        const webhookUrl = 'https://discord.com/api/webhooks/1408848046095208610/kxoR-Q5sLX2NlZ2end9xGO4mfQ0ZyYIpKEUhagIemC4hJCjlr4CAbJdAhkJVUDBO2gxe';
+        const messageToSend = 'open labubu app now';
+
+        // Add an event listener to the button for a click event
+        sendButton.addEventListener('click', async () => {
+            // Display a sending message to the user
+            statusMessage.textContent = 'Sending message...';
+            statusMessage.style.color = '#4b5563';
+
+            // Prepare the payload for the webhook
+            const payload = {
+                content: messageToSend
+            };
+
+            try {
+                // Use the fetch API to send a POST request to the webhook URL
+                const response = await fetch(webhookUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                // Check if the response was successful (status code 204 for no content)
+                if (response.ok) {
+                    statusMessage.textContent = 'Message sent successfully!';
+                    statusMessage.style.color = '#10b981';
+                } else {
+                    // If the response was not okay, show the error status
+                    const errorText = await response.text();
+                    console.error('Failed to send message:', response.status, errorText);
+                    statusMessage.textContent = `Error: ${response.status} - Failed to send message.`;
+                    statusMessage.style.color = '#ef4444';
+                }
+            } catch (error) {
+                // Handle any network errors
+                console.error('Network error:', error);
+                statusMessage.textContent = 'Network error. Could not connect to Discord.';
+                statusMessage.style.color = '#ef4444';
+            }
+        });
+    </script>
 </body>
 </html>
