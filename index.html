@@ -1,23 +1,18 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <title>Sender — Messages / Themes / Words Color / Drop Form</title>
+  <meta charset="UTF-8" />
+  <title>Message Sender</title>
   <style>
-    body { font-family: Arial, sans-serif; padding: 18px; background:#f4f6f8; color:#111; }
-    h2,h3 { margin:10px 0 8px; }
-    form { display:grid; gap:10px; max-width:420px; margin-bottom:18px; }
-    label { font-size:14px; display:flex; flex-direction:column; gap:6px; }
-    input[type="text"], input[type="number"], textarea { padding:8px; border-radius:6px; border:1px solid #ccc; }
-    button { padding:8px 12px; border:none; border-radius:8px; background:#007bff; color:white; cursor:pointer; }
-    button:hover { opacity:0.9; }
-    .row { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
-    .theme-buttons, .music-controls { display:flex; gap:8px; flex-wrap:wrap; margin:6px 0; }
+    body { font-family: Arial, sans-serif; padding: 20px; background:#f4f6f8; }
+    form { display: grid; gap: 10px; max-width: 400px; margin-bottom:20px; }
+    label { font-size: 14px; display:flex; flex-direction:column; gap:6px; }
+    button { padding: 8px 12px; border: none; border-radius: 6px; background: #007bff; color: white; cursor: pointer; }
+    button:hover { opacity: 0.9; }
+    .theme-buttons, .music-controls { display:flex; gap:6px; flex-wrap:wrap; margin:8px 0; }
+    .music-slot { margin-bottom:12px; }
     .color-options { display:flex; gap:8px; flex-wrap:wrap; margin-top:6px; }
     .color-options label { display:inline-flex; align-items:center; gap:6px; padding:6px 8px; border-radius:8px; background:#fff; box-shadow:0 1px 2px rgba(0,0,0,0.06); cursor:pointer; }
-    .music-slot { margin-bottom:10px; }
-    textarea { min-height:60px; resize:vertical; }
-    .small { font-size:13px; color:#333; }
   </style>
 </head>
 <body>
@@ -34,7 +29,7 @@
     </label>
 
     <label style="flex-direction:row; align-items:center; gap:10px;">
-      <span class="small">Add Roblox icon?</span>
+      <span>Add Roblox icon?</span>
       <input type="checkbox" id="robloxCheck">
     </label>
 
@@ -45,7 +40,7 @@
 
     <label>
       Text color for the message:
-      <div class="color-options" id="colorOptions">
+      <div class="color-options">
         <label><input type="radio" name="textColor" value="red" checked> Red</label>
         <label><input type="radio" name="textColor" value="green"> Green</label>
         <label><input type="radio" name="textColor" value="pink"> Pink</label>
@@ -58,7 +53,7 @@
     <button type="submit">Send Message</button>
   </form>
 
-  <h3>Change Theme (affects page background & buttons — words set to black)</h3>
+  <h3>Change Theme</h3>
   <div class="theme-buttons">
     <button type="button" onclick="sendTheme('pink')">Pink</button>
     <button type="button" onclick="sendTheme('yellow')">Yellow</button>
@@ -68,39 +63,31 @@
     <button type="button" onclick="sendTheme('off')">Off</button>
   </div>
 
-  <h3>Words Color (changes page words — independent of theme)</h3>
-  <div class="color-options" style="margin-bottom:12px;">
-    <label><input type="radio" name="wordsColor" value="black" checked> Black</label>
-    <label><input type="radio" name="wordsColor" value="red"> Red</label>
-    <label><input type="radio" name="wordsColor" value="green"> Green</label>
-    <label><input type="radio" name="wordsColor" value="pink"> Pink</label>
-    <label><input type="radio" name="wordsColor" value="purple"> Purple</label>
-    <label><input type="radio" name="wordsColor" value="yellow"> Yellow</label>
-    <label><input type="radio" name="wordsColor" value="disco"> Disco</label>
-    <label><input type="radio" name="wordsColor" value="off"> Off</label>
-  </div>
-  <div class="row" style="gap:10px; margin-bottom:18px;">
-    <button type="button" onclick="sendWordsColor()">Apply Words Color</button>
-    <span class="small">Choose "Off" to let theme/text use normal CSS (no override).</span>
+  <h3>Word Color Control</h3>
+  <div class="theme-buttons">
+    <button type="button" onclick="sendWordColor('red')">Red</button>
+    <button type="button" onclick="sendWordColor('yellow')">Yellow</button>
+    <button type="button" onclick="sendWordColor('green')">Green</button>
+    <button type="button" onclick="sendWordColor('pink')">Pink</button>
+    <button type="button" onclick="sendWordColor('purple')">Purple</button>
+    <button type="button" onclick="sendWordColor('disco')">Disco</button>
+    <button type="button" onclick="sendWordColor('off')">Off</button>
   </div>
 
-  <h3>Form Dropper (what you type will fall from top)</h3>
-  <form id="dropForm">
+  <h3>Dropper</h3>
+  <form id="dropperForm">
     <label>
-      Drop content (any text or emoji):
-      <textarea id="dropContent" placeholder="Type whatever you want to drop (e.g. 💥 Boom! )"></textarea>
+      Drop content (emoji / text):
+      <input type="text" id="dropContent" required>
     </label>
     <label>
-      How many fall together? (1–50)
-      <input type="number" id="dropCount" min="1" max="50" value="8" required>
+      How many? (1–80):
+      <input type="number" id="dropCount" min="1" max="80" value="5" required>
     </label>
-    <div class="row">
-      <button type="submit">Send Drop</button>
-      <button type="button" onclick="sendDrop('repeat')">Send Repeat (same content)</button>
-    </div>
+    <button type="submit">Send Drop</button>
   </form>
 
-  <h3>Music Controls (upload & control — will write to DB & storage)</h3>
+  <h3>Music Controls</h3>
   <div id="musicSlots"></div>
 
   <!-- Firebase SDK -->
@@ -109,7 +96,6 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-storage-compat.js"></script>
 
   <script>
-    // ---------- Firebase config ----------
     const firebaseConfig = {
       apiKey: "AIzaSyAjeXycCBhYoAU-0iiC4LbSTylKrrThN8Y",
       authDomain: "sharplabubu.firebaseapp.com",
@@ -120,13 +106,15 @@
       appId: "1:596148393481:web:4f822d86c44a13bd810ad8",
       measurementId: "G-4M25R3BF08"
     };
+
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
     const storage = firebase.storage();
 
-    // ---------- Messages ----------
+    // send message
     document.getElementById("msgForm").addEventListener("submit", (e) => {
       e.preventDefault();
+
       const name = document.getElementById("name").value.trim();
       const msg = document.getElementById("message").value.trim();
       const roblox = document.getElementById("robloxCheck").checked;
@@ -134,12 +122,12 @@
       const colorRadios = document.querySelectorAll('input[name="textColor"]');
       let textColor = 'red';
       for (const r of colorRadios) if (r.checked) { textColor = r.value; break; }
+
       if (!name || !msg) return;
 
       const messageData = {
         id: Date.now().toString() + "_" + Math.random().toString(36).slice(2,8),
-        name: name,
-        roblox: !!roblox,
+        name: roblox ? name + " {roblox.png}" : name,
         text: msg,
         textColor: textColor,
         duration: duration * 1000,
@@ -151,50 +139,27 @@
       document.querySelector('input[name="textColor"][value="red"]').checked = true;
     });
 
-    // ---------- Theme (background & buttons, words forced black by theme) ----------
+    // theme
     function sendTheme(theme) {
       db.ref("theme").set({ mode: theme, timestamp: Date.now() });
     }
 
-    // ---------- Words color (separate from theme) ----------
-    function sendWordsColor() {
-      const selected = document.querySelector('input[name="wordsColor"]:checked')?.value || "black";
-      // values: black, red, green, pink, purple, yellow, disco, off
-      db.ref("wordsColor").set({ mode: selected, timestamp: Date.now() });
+    // word color control
+    function sendWordColor(color) {
+      db.ref("wordColor").set({ color, timestamp: Date.now() });
     }
 
-    // ---------- Form Dropper ----------
-    document.getElementById("dropForm").addEventListener("submit", (e) => {
+    // dropper
+    document.getElementById("dropperForm").addEventListener("submit", e => {
       e.preventDefault();
       const content = document.getElementById("dropContent").value.trim();
-      let count = parseInt(document.getElementById("dropCount").value) || 8;
-      if (!content) return alert("Enter drop content");
-      count = Math.max(1, Math.min(50, count));
-      const dropData = {
-        id: Date.now().toString() + "_" + Math.random().toString(36).slice(2,8),
-        content,
-        count,
-        timestamp: Date.now()
-      };
-      db.ref("drops").push(dropData);
+      const count = Math.max(1, Math.min(80, parseInt(document.getElementById("dropCount").value)));
+      if (!content) return;
+      db.ref("drops").push({ content, count });
       e.target.reset();
     });
 
-    // helper to quickly send same drop (useful during testing)
-    function sendDrop(mode) {
-      const content = document.getElementById("dropContent").value.trim() || "✨";
-      let count = parseInt(document.getElementById("dropCount").value) || 8;
-      count = Math.max(1, Math.min(50, count));
-      const dropData = {
-        id: Date.now().toString() + "_" + Math.random().toString(36).slice(2,8),
-        content,
-        count,
-        timestamp: Date.now()
-      };
-      db.ref("drops").push(dropData);
-    }
-
-    // ---------- Music slots (kept from your previous sender) ----------
+    // music slots
     const musicSlotsDiv = document.getElementById("musicSlots");
     for (let i=1; i<=5; i++) {
       const slot = document.createElement("div");
