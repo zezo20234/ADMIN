@@ -12,7 +12,7 @@
     .theme-buttons, .music-controls { display:flex; gap:6px; flex-wrap:wrap; margin:8px 0; }
     .music-slot { margin-bottom:12px; }
     .color-options { display:flex; gap:8px; flex-wrap:wrap; margin-top:6px; }
-    .color-options label { display:inline-flex; align-items:center; gap:6px; padding:6px 8px; border-radius:8px; background:#fff; box-shadow:0 1px 2px rgba(0,0,0,0.06); }
+    .color-options label { display:inline-flex; align-items:center; gap:6px; padding:6px 8px; border-radius:8px; background:#fff; box-shadow:0 1px 2px rgba(0,0,0,0.06); cursor:pointer; }
   </style>
 </head>
 <body>
@@ -46,7 +46,7 @@
         <label><input type="radio" name="textColor" value="pink"> Pink</label>
         <label><input type="radio" name="textColor" value="purple"> Purple</label>
         <label><input type="radio" name="textColor" value="yellow"> Yellow</label>
-        <label><input type="radio" name="textColor" value="disco"> Disco (slow color change)</label>
+        <label><input type="radio" name="textColor" value="disco"> Disco (slow)</label>
       </div>
     </label>
 
@@ -77,7 +77,7 @@
       authDomain: "sharplabubu.firebaseapp.com",
       databaseURL: "https://sharplabubu-default-rtdb.firebaseio.com",
       projectId: "sharplabubu",
-      storageBucket: "sharplabubu.appspot.com", // ensure this matches receiver
+      storageBucket: "sharplabubu.appspot.com",
       messagingSenderId: "596148393481",
       appId: "1:596148393481:web:4f822d86c44a13bd810ad8",
       measurementId: "G-4M25R3BF08"
@@ -113,7 +113,6 @@
 
       db.ref("messages").push(messageData);
       e.target.reset();
-      // keep default color selected after reset
       document.querySelector('input[name="textColor"][value="red"]').checked = true;
     });
 
